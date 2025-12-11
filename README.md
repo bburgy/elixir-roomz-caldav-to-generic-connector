@@ -60,7 +60,7 @@ and run it!
 ```yaml
 services:
   app:
-    image: bburgy/roomz-caldav-to-generic-connector:0.1
+    image: bburgy/roomz-caldav-to-generic-connector:0.2.1
     ports:
       - 80:4000/tcp
     build:
