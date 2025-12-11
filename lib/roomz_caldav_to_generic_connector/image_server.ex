@@ -97,6 +97,8 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
   defp make_roomz_image({:ok, %EventCached{image: {:ok, image}} = cache}) do
     Logger.debug("Transforming the image for ROOMZ ...")
 
+    # Create the image for ROOMZ here by reading the description or the URL.
+
     with {:ok, image} <- Image.thumbnail(image, "1024x768", fit: :contain),
          {:ok, image} <- Image.to_colorspace(image, :bw),
          {:ok, image} <- Image.without_alpha_band(image, fn x -> {:ok, x} end) do
