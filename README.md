@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD041 MD013 -->
 
-[![Docker Image CI](https://github.com/minidfx/elixir-roomz-caldav-to-generic-connector/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/minidfx/elixir-roomz-caldav-to-generic-connector/actions/workflows/docker-publish.yml)
+[![Docker Image CI](https://github.com/bburgy/elixir-roomz-caldav-to-generic-connector/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/bburgy/elixir-roomz-caldav-to-generic-connector/actions/workflows/docker-publish.yml)
 
 # Middleware between your CalDAV servers and ROOMZ
 
@@ -60,7 +60,7 @@ and run it!
 ```yaml
 services:
   app:
-    image: minidfx/roomz-caldav-to-generic-connector:0.1
+    image: bburgy/roomz-caldav-to-generic-connector:0.1
     ports:
       - 80:4000/tcp
     build:

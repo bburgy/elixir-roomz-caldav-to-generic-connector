@@ -54,7 +54,7 @@ defmodule RoomzCaldavToGenericConnector.MixProject do
       {:saxy, "~> 1.6"},
       {:tesla, "~> 1.12"},
       {:hackney, "~> 1.25"},
-      {:icalendar, git: "https://github.com/minidfx/icalendar", branch: "main"},
+      {:icalendar, git: "https://github.com/bburgy/icalendar", branch: "main"},
       {:uuid, "~> 1.1"},
       {:req, "~> 0.5.15"},
       {:image, "~> 0.62.0"}
