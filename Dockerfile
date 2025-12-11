@@ -66,7 +66,7 @@ FROM ${RUNNER_IMAGE} AS final
 ENV TINI_VERSION=v0.19.0
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends libstdc++6 openssl libncurses5 locales ca-certificates \
+  && apt-get install -y --no-install-recommends libstdc++6 openssl libncurses5 locales ca-certificates fontconfig \
   && rm -rf /var/lib/apt/lists/*
 
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
