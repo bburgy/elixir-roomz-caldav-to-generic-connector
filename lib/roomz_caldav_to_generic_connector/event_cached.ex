@@ -8,6 +8,7 @@ defmodule RoomzCaldavToGenericConnector.EventCached do
     field(:interval, Timex.Interval.t(), enforce: true)
     field(:uri, {:ok, URI.t()} | :none, enforce: true)
 
+    field(:description, String.t(), enforce: false)
     field(:image, :none | {:ok, struct()} | :error, structs: Image, enforce: false)
   end
 end

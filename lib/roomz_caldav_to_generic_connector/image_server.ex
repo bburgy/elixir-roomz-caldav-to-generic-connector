@@ -42,7 +42,7 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
   def handle_cast({:download_images, %DownloadImagesRequest{} = request}, state) do
     %DownloadImagesRequest{events: events_cached, server: server} = request
 
-    Logger.debug("Trying to download the event images ...")
+    Logger.debug("Trying to download/compute image for the events ...")
 
     new_events_cached =
       events_cached
@@ -60,7 +60,7 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
       # INFO: Filter out the success async task
       |> Stream.filter(&match?({:ok, _}, &1))
       |> Stream.map(fn {:ok, x} -> x end)
-      |> Task.async_stream(&make_roomz_image/1)
+      |> Task.async_stream(&safe_make_roomz_image/1)
       # INFO: Filter out the success async task
       |> Stream.filter(&match?({:ok, _}, &1))
       |> Stream.map(fn {:ok, x} -> x end)
@@ -87,20 +87,75 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
     end
   end
 
-  defp filter_invalid_uri(%EventCached{uri: _} = cache) do
-    Logger.notice("Invalid given URI.")
+  defp filter_invalid_uri(%EventCached{id: eid, room_id: rid, uri: _} = cache) do
+    Logger.notice("The event #{eid} from the room #{rid} doesn't have an uri.")
     {:skip, cache}
   end
 
-  defp make_roomz_image({:skip, cache}), do: {:skip, cache}
+  defp unsafe_make_roomz_image({:skip, %EventCached{description: description} = cache})
+       when not is_nil(description) do
+    with [[_, text]] <- Regex.scan(~r/alert:(.+)/, description),
+         {:ok, image} <-
+           text
+           |> StringHelper.sanitize()
+           |> Image.Text.text(
+             width: 1024,
+             height: 768,
+             background_fill_color: :white,
+             background_fill_opacity: 1.0,
+             text_fill_color: :black,
+             font_size: 90,
+             align: :center,
+             dpi: 96
+           ),
+         {:ok, image} <- Image.to_colorspace(image, :bw),
+         {:ok, image} <- Image.without_alpha_band(image, fn x -> {:ok, x} end) do
+      {:ok, %EventCached{cache | image: {:ok, image}}}
+    else
+      [] ->
+        {:skip, cache}
+    end
+  end
 
-  defp make_roomz_image({:ok, %EventCached{image: {:ok, image}} = cache}) do
+  defp unsafe_make_roomz_image({:skip, cache}), do: {:skip, cache}
+
+  defp unsafe_make_roomz_image({:ok, %EventCached{image: {:ok, image}} = cache}) do
     Logger.debug("Transforming the image for ROOMZ ...")
 
     with {:ok, image} <- Image.thumbnail(image, "1024x768", fit: :contain),
          {:ok, image} <- Image.to_colorspace(image, :bw),
          {:ok, image} <- Image.without_alpha_band(image, fn x -> {:ok, x} end) do
+      Logger.debug("Image transformed.")
       {:ok, %EventCached{cache | image: {:ok, image}}}
+    else
+      _ ->
+        Logger.warning("Unknown error occurred while trying to generate an image.")
+        {:skip, cache}
+    end
+  end
+
+  defp safe_make_roomz_image({:skip, %EventCached{description: description} = cache})
+       when not is_nil(description) do
+    try do
+      unsafe_make_roomz_image({:skip, cache})
+    rescue
+      e in MatchError ->
+        %MatchError{term: {:error, reason}} = e
+        Logger.warning("An error occurred while generating the image because: #{reason}")
+        {:skip, cache}
+    end
+  end
+
+  defp safe_make_roomz_image({:skip, cache}), do: {:skip, cache}
+
+  defp safe_make_roomz_image({:ok, %EventCached{} = cache}) do
+    try do
+      unsafe_make_roomz_image({:ok, cache})
+    rescue
+      e in MatchError ->
+        %MatchError{term: {:error, reason}} = e
+        Logger.warning("An error occurred while generating the image because: #{reason}")
+        {:skip, cache}
     end
   end
 
