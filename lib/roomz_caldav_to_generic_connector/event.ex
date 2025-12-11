@@ -27,5 +27,6 @@ defmodule RoomzCaldavToGenericConnector.Event do
     field(:is_private, boolean(), enforce: true)
     field(:is_cancelled, boolean(), enforce: true)
     field(:image_url, URI.t() | nil, enforce: false)
+    field(:description, String.t(), enforce: false)
   end
 end

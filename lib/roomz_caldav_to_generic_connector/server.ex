@@ -591,7 +591,12 @@ defmodule RoomzCaldavToGenericConnector.Server do
        ) do
     with %CalDAVClient.Event{etag: etag} <- caldav_event,
          %ICalendar.Event{uid: id} <- ical_event do
-      %ICalendar.Event{dtstart: start_date, dtend: end_date, url: raw_uri} = ical_event
+      %ICalendar.Event{
+        dtstart: start_date,
+        dtend: end_date,
+        url: raw_uri,
+        description: description
+      } = ical_event
 
       # Try to find out the event cached
       with {:ok, event_cached} <- Map.fetch(events_cached_by_id, id),
@@ -610,7 +615,8 @@ defmodule RoomzCaldavToGenericConnector.Server do
               event_cached
               | etag: etag,
                 image: :none,
-                uri: safe_parse_uri(raw_uri),
+                uri: StringHelper.try_parse_uri(raw_uri),
+                description: StringHelper.sanitize(description),
                 interval:
                   Timex.Interval.new(
                     from: DateTimeHelper.to_utc(start_date),
@@ -631,7 +637,8 @@ defmodule RoomzCaldavToGenericConnector.Server do
               room_id: room_id,
               etag: etag,
               image: :none,
-              uri: safe_parse_uri(raw_uri),
+              uri: StringHelper.try_parse_uri(raw_uri),
+              description: StringHelper.sanitize(description),
               interval:
                 Timex.Interval.new(
                   from: DateTimeHelper.to_utc(start_date),
@@ -681,16 +688,8 @@ defmodule RoomzCaldavToGenericConnector.Server do
       creation_date_utc: DateTimeHelper.to_utc(modified),
       is_private: false,
       is_cancelled: false,
-      image_url: uri
+      image_url: uri,
+      description: original_event.description
     }
   end
-
-  defp safe_parse_uri(raw_uri) when is_not_nil_or_empty_string(raw_uri) do
-    case URI.new(raw_uri) do
-      {:ok, uri} -> {:ok, uri}
-      {:error, _} -> :none
-    end
-  end
-
-  defp safe_parse_uri(_raw_uri), do: :none
 end
