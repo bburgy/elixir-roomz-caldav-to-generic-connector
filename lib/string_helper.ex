@@ -5,7 +5,7 @@ defmodule StringHelper do
 
   def sanitize(value) when is_bitstring(value) do
     value
-    |> String.normalize(:nfkc)
+    |> String.normalize(:nfc)
     |> String.trim()
   end
 

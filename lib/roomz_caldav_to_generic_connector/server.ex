@@ -69,7 +69,7 @@ defmodule RoomzCaldavToGenericConnector.Server do
          {:ok, room} <- Map.fetch(rooms, room_id),
          %Room{events_cached: events_cached} <- room do
       # INFO: Fire a message to try to pull the images from the events
-      # or the generate one with the given text.
+      # or try to generate an image with the given from the description.
       ImageServer.download_images(%DownloadImagesRequest{
         server: self(),
         events: Map.values(events_cached)

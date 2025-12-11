@@ -96,7 +96,9 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
        when not is_nil(description) do
     with [[_, text]] <- Regex.scan(~r/alert:(.+)/, description),
          {:ok, image} <-
-           Image.Text.text(text,
+           text
+           |> StringHelper.sanitize()
+           |> Image.Text.text(
              width: 1024,
              height: 768,
              background_fill_color: :white,
@@ -125,6 +127,10 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
          {:ok, image} <- Image.without_alpha_band(image, fn x -> {:ok, x} end) do
       Logger.debug("Image transformed.")
       {:ok, %EventCached{cache | image: {:ok, image}}}
+    else
+      _ ->
+        Logger.warning("Unknown error occurred while trying to generate an image.")
+        {:skip, cache}
     end
   end
 
