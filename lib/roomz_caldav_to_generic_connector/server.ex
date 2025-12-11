@@ -68,21 +68,11 @@ defmodule RoomzCaldavToGenericConnector.Server do
          %ServerState{rooms: rooms} <- state,
          {:ok, room} <- Map.fetch(rooms, room_id),
          %Room{events_cached: events_cached} <- room do
-      images_to_pull =
-        events_cached
-        |> Map.values()
-        |> Stream.filter(fn
-          %EventCached{image: _, uri: :none} -> false
-          %EventCached{image: :error, uri: _} -> false
-          %EventCached{image: {:ok, _}, uri: _} -> false
-          %EventCached{image: :none, uri: {:ok, _}} -> true
-        end)
-        |> Enum.to_list()
-
       # INFO: Fire a message to try to pull the images from the events
+      # or the generate one with the given text.
       ImageServer.download_images(%DownloadImagesRequest{
         server: self(),
-        events: images_to_pull
+        events: Map.values(events_cached)
       })
 
       {:noreply, state}
