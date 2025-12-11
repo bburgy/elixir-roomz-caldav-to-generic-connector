@@ -42,6 +42,14 @@ are well-configured, all images will be ready at the appropriate time.
 You can disable this process by setting the variable
 `PREFETCH_IMAGES` to `false`.
 
+## Alert
+
+If you set the pattern `alert:<your-text>` in the description and if you don't specify
+an image, the middleware will generate an image with your text.
+
+For instance: `alert:Hello` will generate an image with the text Hello in the
+middle of the display.
+
 ## How to use it?
 
 ### Docker
