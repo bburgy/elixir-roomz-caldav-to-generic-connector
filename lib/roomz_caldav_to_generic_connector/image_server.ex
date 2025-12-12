@@ -39,6 +39,11 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
   end
 
   @impl true
+  def handle_cast({:download_images, %DownloadImagesRequest{events: []}}, state) do
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_cast({:download_images, %DownloadImagesRequest{} = request}, state) do
     %DownloadImagesRequest{events: events_cached, server: server} = request
 
@@ -65,7 +70,7 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
       |> Stream.filter(&match?({:ok, _}, &1))
       |> Stream.map(fn {:ok, x} -> x end)
       |> Stream.map(fn
-        {:skip, cache} -> cache
+        {:skip, cache} -> %EventCached{cache | image: :skip}
         {:ok, cache} -> cache
       end)
       |> Enum.to_list()
@@ -166,7 +171,7 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
 
     Logger.debug("Downloading the image #{URI.to_string(uri)} ...")
 
-    with {:ok, %Req.Response{status: 200} = response} <- Req.get(uri),
+    with {:ok, %Req.Response{status: 200} = response} <- safe_download_image(uri),
          %Req.Response{body: body, headers: headers} <- response,
          {:ok, content_types} <- Map.fetch(headers, "content-type"),
          content_type <- hd(content_types) do
@@ -206,6 +211,14 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
       "" -> {:ok, uri}
       %URI{} -> {:error, "Invalid URI: #{URI.to_string(uri)}"}
       reason -> {:error, reason}
+    end
+  end
+
+  defp safe_download_image(%URI{} = uri) do
+    try do
+      Req.get(uri)
+    rescue
+      ArgumentError -> {:error, "Cannot download the image: #{uri}."}
     end
   end
 end

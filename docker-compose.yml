@@ -1,14 +1,17 @@
 services:
   app:
-    image: bburgy/roomz-caldav-to-generic-connector:0.2.1
+    image: ghcr.io/bburgy/elixir-roomz-caldav-to-generic-connector:0.2.1
+    platform: linux/amd64
     ports:
       - 80:4000/tcp
     build:
       context: .
     environment:
+      - SECRET_KEY_BASE=<key>
       - PORT=4000
       - BASIC_AUTH_USERNAME=<username>
       - BASIC_AUTH_PASSWORD=<password>
       - SERVER_URL_1=<url>
       - SERVER_USERNAME_1=<username>
       - SERVER_PASSWORD_1=<password>
+      - PREFETCH_IMAGES=true
