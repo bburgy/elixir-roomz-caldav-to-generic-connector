@@ -166,7 +166,7 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
 
     Logger.debug("Downloading the image #{URI.to_string(uri)} ...")
 
-    with {:ok, %Req.Response{status: 200} = response} <- Req.get(uri),
+    with {:ok, %Req.Response{status: 200} = response} <- safe_download_image(uri),
          %Req.Response{body: body, headers: headers} <- response,
          {:ok, content_types} <- Map.fetch(headers, "content-type"),
          content_type <- hd(content_types) do
@@ -206,6 +206,14 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
       "" -> {:ok, uri}
       %URI{} -> {:error, "Invalid URI: #{URI.to_string(uri)}"}
       reason -> {:error, reason}
+    end
+  end
+
+  defp safe_download_image(%URI{} = uri) do
+    try do
+      Req.get(uri)
+    rescue
+      ArgumentError -> {:error, "Cannot download the image: #{uri}."}
     end
   end
 end
