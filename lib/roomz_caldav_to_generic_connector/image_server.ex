@@ -39,6 +39,11 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
   end
 
   @impl true
+  def handle_cast({:download_images, %DownloadImagesRequest{events: []}}, state) do
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_cast({:download_images, %DownloadImagesRequest{} = request}, state) do
     %DownloadImagesRequest{events: events_cached, server: server} = request
 
@@ -65,7 +70,7 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
       |> Stream.filter(&match?({:ok, _}, &1))
       |> Stream.map(fn {:ok, x} -> x end)
       |> Stream.map(fn
-        {:skip, cache} -> cache
+        {:skip, cache} -> %EventCached{cache | image: :skip}
         {:ok, cache} -> cache
       end)
       |> Enum.to_list()
