@@ -99,7 +99,7 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
 
   defp unsafe_make_roomz_image({:skip, %EventCached{description: description} = cache})
        when not is_nil(description) do
-    with [[_, text]] <- Regex.scan(~r/alert:(.+)/, description),
+    with [[_, text]] <- Regex.scan(~r/alert:(.+)/if, description),
          {:ok, image} <-
            text
            |> StringHelper.sanitize()
