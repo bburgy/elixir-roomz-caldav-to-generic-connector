@@ -70,7 +70,7 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
       |> Stream.filter(&match?({:ok, _}, &1))
       |> Stream.map(fn {:ok, x} -> x end)
       |> Stream.map(fn
-        {:skip, cache} -> %EventCached{cache | image: :skip}
+        {:skip, %EventCached{} = cache} -> %EventCached{cache | image: :skip}
         {:ok, cache} -> cache
       end)
       |> Enum.to_list()

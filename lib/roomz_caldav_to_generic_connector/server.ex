@@ -146,7 +146,7 @@ defmodule RoomzCaldavToGenericConnector.Server do
   end
 
   @impl true
-  def handle_cast({:get_events, caller, room_id, interval}, state) do
+  def handle_cast({:get_events, caller, room_id, interval}, %ServerState{} = state) do
     context_time = Timex.now()
 
     Logger.debug("""
@@ -312,7 +312,7 @@ defmodule RoomzCaldavToGenericConnector.Server do
   defp update_image_caches({room_id, caches}, %ServerState{rooms: rooms} = state)
        when is_list(caches) and
               is_not_nil_or_empty_string(room_id) do
-    with {:ok, room} <- Map.fetch(rooms, room_id),
+    with {:ok, %Room{} = room} <- Map.fetch(rooms, room_id),
          %Room{events_cached: events_cached} <- room do
       caches
       |> Enum.reduce(events_cached, &update_image_cache/2)
@@ -320,9 +320,7 @@ defmodule RoomzCaldavToGenericConnector.Server do
       |> then(fn x -> %ServerState{state | rooms: Map.put(rooms, room_id, x)} end)
     else
       :error ->
-        Logger.debug(
-          "Was not able to update the event cached because the room #{room_id} was not found."
-        )
+        Logger.debug("Was not able to update the event cached because the room #{room_id} was not found.")
 
         state
     end
@@ -332,7 +330,7 @@ defmodule RoomzCaldavToGenericConnector.Server do
          %EventCached{id: updated_cache_id, image: image_result},
          %{} = events_cached
        ) do
-    with {:ok, existing_event_cached} <- Map.fetch(events_cached, updated_cache_id),
+    with {:ok, %EventCached{} = existing_event_cached} <- Map.fetch(events_cached, updated_cache_id),
          %EventCached{id: existing_cache_id} <- existing_event_cached do
       Logger.debug("Updating the existing event cached #{updated_cache_id} ...")
 
@@ -598,7 +596,7 @@ defmodule RoomzCaldavToGenericConnector.Server do
       } = ical_event
 
       # Try to find out the event cached
-      with {:ok, event_cached} <- Map.fetch(events_cached_by_id, id),
+      with {:ok, %EventCached{} = event_cached} <- Map.fetch(events_cached_by_id, id),
            %EventCached{etag: event_cached_etag} <- event_cached do
         # Is it the same event?
         if(String.equivalent?(event_cached_etag, etag),

@@ -182,7 +182,7 @@ defmodule RoomzCaldavToGenericConnector.Servers do
   end
 
   @impl true
-  def handle_cast({:update_mappings, %ServerState{} = server}, state) do
+  def handle_cast({:update_mappings, %ServerState{} = server}, %ServersState{} = state) do
     %ServerState{id: server_id, rooms: rooms} = server
     %ServersState{mappings: mappings, servers: servers} = state
 
