@@ -70,7 +70,7 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
       |> Stream.filter(&match?({:ok, _}, &1))
       |> Stream.map(fn {:ok, x} -> x end)
       |> Stream.map(fn
-        {:skip, cache} -> %EventCached{cache | image: :skip}
+        {:skip, %EventCached{} = cache} -> %EventCached{cache | image: :skip}
         {:ok, cache} -> cache
       end)
       |> Enum.to_list()
@@ -99,7 +99,7 @@ defmodule RoomzCaldavToGenericConnector.ImageServer do
 
   defp unsafe_make_roomz_image({:skip, %EventCached{description: description} = cache})
        when not is_nil(description) do
-    with [[_, text]] <- Regex.scan(~r/alert:(.+)/, description),
+    with [[_, text]] <- Regex.scan(~r/alert:(.+)/if, description),
          {:ok, image} <-
            text
            |> StringHelper.sanitize()
